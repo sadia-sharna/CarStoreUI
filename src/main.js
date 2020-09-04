@@ -6,7 +6,12 @@ import jQuery from 'jquery/dist/jquery.min.js';
 import Popper from 'popper.js/dist/umd/popper.min.js';
 import Bootstrap from 'bootstrap/dist/js/bootstrap.min.js';
 import 'bootstrap/dist/css/bootstrap.css';
+import axios from 'axios';
+import VueCharts from 'vue-chartjs';
+Vue.use(VueCharts);
 
+Vue.prototype.$apiUrl = "https://carstore.azurewebsites.net/api/";
+//Vue.prototype.$apiUrl = "https://localhost:44365/api/";
 Vue.config.productionTip = false
 
 new Vue({

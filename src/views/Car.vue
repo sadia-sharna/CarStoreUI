@@ -1,145 +1,6 @@
 <style>
 
-  .search-input {
-      border: 0;
-      margin: 0;
-      padding: 0.5rem calc(5rem + 0.5rem) 0.5rem 0.5rem;
-      border-radius: 8px;
-      width: 100% !important;
-      background: #ddd;
-      -webkit-appearance: none;
-      font-size: 13px;
-      border-radius: 32px !important;
-  }
 
-  .search-input:focus {
-      outline: 0;
-      background: white;
-  }
-
-  .search-form {
-      margin-bottom: 0rem !important;
-  }
-
-  .has-search .form-control {
-      padding-left: 2.375rem;
-  }
-
-  .has-search .form-control-feedback {
-      position: absolute;
-      z-index: 2;
-      display: block;
-      width: 1.1rem;
-      height: 2.375rem;
-      line-height: 2.375rem;
-      margin-left: 1.8%;
-      text-align: center;
-      pointer-events: none;
-      color: #00ADEE;
-  }
-
-  .form-control {
-      border-radius: 5px !important;
-      border: 1px solid #00ADEE !important;
-  }
-
-  .hover_class {
-      position: absolute;
-      z-index: 1;
-  }
-
-  .hover_class_advice {
-      position: absolute;
-      z-index: 1;
-  }
-
-  .dd-menu {
-      position: absolute;
-      top: 0px;
-      left: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 0;
-      margin: 2px 0 0 0;
-      box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.1);
-      background-color: #ffffff;
-      list-style-type: none;
-      min-width: 508px !important;
-  }
-
-  .dd-input+.dd-menu {
-      display: none;
-  }
-
-  .dd-input:checked+.dd-menu {
-      display: block;
-  }
-
-  .dd-menu li {
-      white-space: nowrap;
-  }
-
-  .dd-menu li:hover {
-      background-color: #f7f7f7;
-  }
-
-  .scroll_search_list {
-      max-height: 131px;
-      overflow-y: scroll;
-      overflow-x: hidden;
-  }
-
-  .scroll_details::-webkit-scrollbar {
-      width: 7px;
-  }
-
-
-  /* Track */
-
-  .scroll_details::-webkit-scrollbar-track {
-      box-shadow: inset 0 0 5px #e4e5e6;
-      border-radius: 10px;
-      height: 15px;
-  }
-
-
-  /* Handle */
-
-  .scroll_details::-webkit-scrollbar-thumb {
-      /* background: rgb(40, 194, 250);  */
-      background: rgb(171, 178, 180);
-      border-radius: 10px;
-  }
-
-  .per_list {
-      padding: 11px 20px 5px 20px;
-      /* margin-top: 2px; */
-      border-bottom: 1px solid #f1f1f1;
-  }
-
-  .per_list label {
-      font-weight: 400 !important;
-      color: #707379;
-      text-transform: capitalize;
-      margin-bottom: 0rem !important;
-  }
-
-  .per_list label:hover {
-      cursor: pointer;
-  }
-
-  input:checked+label {
-      color: rgb(56, 56, 56);
-      font-weight: 500 !important;
-  }
-
-  .position_add_advice {
-      left: 705px!important;
-  }
-
-  .width_97 {
-      width: 96%!important;
-  }
 </style>
 
 <template>
@@ -152,25 +13,46 @@
                 <button class="btn btn-outline-secondary" type="button">Search</button>
             </div>
         </div>
-        <ul class="list-group">
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      BMW
+        <ul class="list-group" v-show="false">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                BMW
 
-    </li>
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      Toyota
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Toyota
 
-    </li>
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      Corolla
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Corolla
 
-    </li>
-  </ul>
+            </li>
+        </ul>
+        <div class="w-50 border border-dark mt-4">
+            <canvas id="myChart"></canvas>
+        </div>
+        <table class="table table-bordered table-hover mt-4">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Manufacturer</th>
+                    <th scope="col">Model</th>
+                    <th scope="col">Year</th>
+                    <th scope="col">Producing Country</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item,index) in CarList" :key="index">
+                    <th scope="row">{{index+1}}</th>
+                    <td>{{item.Manufacturer}}</td>
+                    <td>{{item.Model}}</td>
+                    <td>{{item.Year}}</td>
+                    <td>{{item.ProducingCountry}}</td>
+                </tr>
+
+            </tbody>
+        </table>
+        <v-pagination v-show="CarList.length>0" v-model="PageNumber" :page-count="TotalCount" :classes="bootstrapPaginationClasses" :labels="paginationAnchorTexts"></v-pagination>
     </div>
-
-
-
-
 
 </div>
 
@@ -179,10 +61,108 @@
 <script>
 
 // @ is an alias to /src
+import axios from 'axios'
+import vPagination from 'vue-plain-pagination'
 
 export default {
     name: 'Car',
+    data() {
+        return {
+            userdata: {},
+            ResponseModel: {},
+            CarPagination: {},
+            CarList: [],
 
+            datalabels: ['React', 'Vanilla JS', 'JQuery', 'VueJS'],
+            dataset: [5, 10, 15, 25],
+            myChart: undefined,
+
+            TotalCount: 1,
+            PageNumber: 1,
+            bootstrapPaginationClasses: {
+                ul: 'pagination',
+                li: 'page-item',
+                liActive: 'active',
+                liDisable: 'disabled',
+                button: 'page-link'
+            },
+            paginationAnchorTexts: {
+                first: 'First',
+                prev: 'Previous',
+                next: 'Next',
+                last: 'Last'
+            }
+        }
+    },
+    components: {
+        vPagination
+    },
+    mounted() {
+        this.getCarsbyPagination()
+    },
+
+    watch: {
+        PageNumber: {
+            handler() {
+                    this.getCarsbyPagination()
+                },
+
+                deep: true
+        }
+    },
+    methods: {
+        getCarsbyPagination() {
+                this.CarPagination.PageSize = 10
+                this.CarPagination.PageNumber = this.PageNumber
+                this.ResponseModel.Data = this.CarPagination
+
+                axios
+                    .post(this.$apiUrl + 'Car/GetCarsByPagination', this.ResponseModel, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        }
+                    })
+                    .then(response => {
+                        if (response.data.Status == true) {
+                            this.CarList = response.data.Data.CarList
+                            if (response.data.Data.TotalCount > this.CarPagination.PageSize)
+                                this.TotalCount = Math.ceil(response.data.Data.TotalCount / this.CarPagination.PageSize)
+                            else this.TotalCount = 1
+
+                            this.getPieChart(response.data.Data)
+                        }
+                    })
+                    .catch(error => {
+                        if (error) throw new Error(error)
+                    })
+            },
+
+            getPieChart(item) {
+                let colorsList = []
+                let i
+
+                for (i = 0; i < item.CountForPieChart.length; i++) {
+                    colorsList.push('#' + ((Math.random() * 0xffffff) << 0).toString(16))
+                }
+
+                var ctx = document.getElementById('myChart').getContext('2d')
+                if (this.myChart) {
+                    this.myChart.destroy()
+                }
+                this.myChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: item.ManufacturersForPieChart,
+                        datasets: [{
+                            backgroundColor: colorsList,
+
+                            data: item.CountForPieChart
+                        }]
+                    }
+                })
+            }
+    }
 }
 
 </script>
